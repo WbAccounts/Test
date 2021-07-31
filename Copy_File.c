@@ -94,20 +94,22 @@ void *thread_copy_fn(void *arg)
     size_t count = block->start;
  
     printf("In Thread\t%ld\nstart = %ld\t end = %ld\n",\
-            pthread_self(),block->start,block->end);
+            (long int)pthread_self(),block->start,block->end);
  
     ///lseek到同样的位置
     ret = lseek(block->infd,block->start,SEEK_SET);
     ret = lseek(block->outfd,block->start,SEEK_SET);
     int bytes_read;
     int bytes_write;
+	double persent;//定义的百分比变量
+	double src_total_bytes=lseek(block->infd,0,SEEK_END);//获取总字节数
     while(count < block->end)
     {
         bytes_read = read(block->infd,buf,sizeof(buf));
         if(bytes_read >0)
         {
             printf("thread = %ld\t read = %ld\t count %d\n",\
-                    pthread_self(),bytes_read,count);
+                    (long int)pthread_self(),bytes_read,count);
             count += bytes_read;
  
             //read（）返回-1，同时errno为EINTR，表示读的过程中遇到了中断
@@ -126,8 +128,9 @@ void *thread_copy_fn(void *arg)
                     ptr_write += bytes_write;
                     bytes_read -= bytes_write;
                 }
-                printf("thread = %ld\t write = %ld\t read %d\n",\
-                    pthread_self(),bytes_write,bytes_read);
+				persent=lseek(fd_des, 0, SEEK_CUR)/src_total_bytes;//获取当前写入字节，除总字节数，得出百分比
+                printf("thread = %ld\t write = %ld\t read %d\t persent = %lf\n",\
+                    (long int)pthread_self(),bytes_write,bytes_read,persent);//打印百分比
             }//end-write;
             ///error while write
             if(bytes_write == -1)
